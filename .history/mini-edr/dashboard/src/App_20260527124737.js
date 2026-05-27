@@ -9,20 +9,12 @@ const socket = io("http://127.0.0.1:8000");
 function App() {
 
   const [events, setEvents] = useState([]);
-  const [incidents, setIncidents] = useState([]);
-  const [networkData, setNetworkData] = useState([]);
-
   const [search, setSearch] = useState("");
-
   const [activePage, setActivePage] = useState("dashboard");
 
   useEffect(() => {
 
     fetchTelemetry();
-
-    fetchIncidents();
-
-    fetchNetwork();
 
     socket.on("new_event", (event) => {
 
@@ -30,25 +22,11 @@ function App() {
 
     });
 
-    socket.on("new_incident", (incident) => {
-
-      setIncidents((prev) => [...prev, incident]);
-
-    });
-
     return () => {
-
       socket.off("new_event");
-
-      socket.off("new_incident");
-
     };
 
   }, []);
-
-  // =========================
-  // FETCH TELEMETRY
-  // =========================
 
   const fetchTelemetry = async () => {
 
@@ -67,59 +45,9 @@ function App() {
     }
   };
 
-  // =========================
-  // FETCH INCIDENTS
-  // =========================
-
-  const fetchIncidents = async () => {
-
-    try {
-
-      const response = await axios.get(
-        "http://127.0.0.1:8000/incidents"
-      );
-
-      setIncidents(response.data);
-
-    } catch (error) {
-
-      console.log(error);
-
-    }
-  };
-
-  // =========================
-  // FETCH NETWORK DATA
-  // =========================
-
-  const fetchNetwork = async () => {
-
-    try {
-
-      const response = await axios.get(
-        "http://127.0.0.1:8000/network"
-      );
-
-      setNetworkData(response.data);
-
-    } catch (error) {
-
-      console.log(error);
-
-    }
-  };
-
-  // =========================
-  // ALERTS
-  // =========================
-
   const alerts = events.filter(
     (event) => event.alert
   );
-
-  // =========================
-  // HOSTS
-  // =========================
 
   const hosts = [
     ...new Set(events.map(
@@ -127,19 +55,11 @@ function App() {
     ))
   ];
 
-  // =========================
-  // SEARCH FILTER
-  // =========================
-
   const filteredEvents = events.filter((event) =>
     event.process_name
       ?.toLowerCase()
       .includes(search.toLowerCase())
   );
-
-  // =========================
-  // SEVERITY CLASS
-  // =========================
 
   const getSeverityClass = (severity) => {
 
@@ -156,7 +76,7 @@ function App() {
 
     <div className="dashboard">
 
-      {/* ================= SIDEBAR ================= */}
+      {/* SIDEBAR */}
 
       <div className="sidebar">
 
@@ -165,20 +85,18 @@ function App() {
           <div className="brand">
 
             <div className="brand-logo">
-              S
+              E
             </div>
 
             <div>
 
-              <h2>ShadowOne</h2>
+              <h2>Shadow One</h2>
 
-              <p>EDR Platform</p>
+              <p>Security Console</p>
 
             </div>
 
           </div>
-
-          {/* MENU */}
 
           <div className="menu">
 
@@ -210,25 +128,9 @@ function App() {
               Hosts
             </div>
 
-            <div
-              className={`menu-item ${activePage === "incidents" ? "active" : ""}`}
-              onClick={() => setActivePage("incidents")}
-            >
-              Incidents
-            </div>
-
-            <div
-              className={`menu-item ${activePage === "network" ? "active" : ""}`}
-              onClick={() => setActivePage("network")}
-            >
-              Network
-            </div>
-
           </div>
 
         </div>
-
-        {/* AGENT STATUS */}
 
         <div className="agent-status">
 
@@ -240,7 +142,7 @@ function App() {
 
       </div>
 
-      {/* ================= MAIN ================= */}
+      {/* MAIN */}
 
       <div className="main">
 
@@ -251,11 +153,11 @@ function App() {
           <div>
 
             <h1>
-              ShadowOne Security Operations
+              Threat Monitoring Dashboard
             </h1>
 
             <p>
-              Realtime Endpoint Detection & Threat Analytics
+              Realtime Endpoint Detection Platform
             </p>
 
           </div>
@@ -270,13 +172,11 @@ function App() {
 
         </div>
 
-        {/* ================= DASHBOARD ================= */}
+        {/* DASHBOARD PAGE */}
 
         {activePage === "dashboard" && (
 
           <>
-
-            {/* OVERVIEW */}
 
             <div className="overview-grid">
 
@@ -319,18 +219,16 @@ function App() {
               <div className="overview-card">
 
                 <div className="overview-title">
-                  Active Incidents
+                  Threat Level
                 </div>
 
                 <div className="overview-value yellow">
-                  {incidents.length}
+                  Medium
                 </div>
 
               </div>
 
             </div>
-
-            {/* CONTENT */}
 
             <div className="content-grid">
 
@@ -339,7 +237,7 @@ function App() {
               <div className="panel">
 
                 <div className="panel-header">
-                  Live Threat Detections
+                  Live Threat Alerts
                 </div>
 
                 <div className="alerts-list">
@@ -347,7 +245,7 @@ function App() {
                   {alerts
                     .slice()
                     .reverse()
-                    .slice(0, 15)
+                    .slice(0, 10)
                     .map((alert, index) => (
 
                     <div
@@ -370,28 +268,22 @@ function App() {
                       <div className="threat-info">
 
                         <div>
-                          <strong>Host:</strong> {alert.hostname}
+                          <strong>Host:</strong>
+                          {" "}
+                          {alert.hostname}
                         </div>
 
                         <div>
-                          <strong>Process:</strong> {alert.process_name}
+                          <strong>Process:</strong>
+                          {" "}
+                          {alert.process_name}
                         </div>
 
                         <div>
-                          <strong>Parent:</strong> {alert.parent_process}
-                        </div>
-
-                      </div>
-
-                      <div className="mitre-box">
-
-                        <span className="mitre-label">
-                          MITRE ATT&CK
-                        </span>
-
-                        <span className="mitre-id">
+                          <strong>MITRE:</strong>
+                          {" "}
                           {alert.mitre}
-                        </span>
+                        </div>
 
                       </div>
 
@@ -408,7 +300,7 @@ function App() {
               <div className="panel">
 
                 <div className="panel-header">
-                  Live Telemetry Stream
+                  Live Telemetry
                 </div>
 
                 <div className="telemetry-scroll">
@@ -424,7 +316,6 @@ function App() {
                         <th>Parent</th>
                         <th>PID</th>
                         <th>Status</th>
-                        <th>MITRE</th>
 
                       </tr>
 
@@ -466,20 +357,6 @@ function App() {
 
                           </td>
 
-                          <td>
-
-                            {event.mitre ? (
-
-                              <span className="mitre-id">
-                                {event.mitre}
-                              </span>
-
-                            ) : (
-                              "-"
-                            )}
-
-                          </td>
-
                         </tr>
 
                       ))}
@@ -498,14 +375,14 @@ function App() {
 
         )}
 
-        {/* ================= THREATS PAGE ================= */}
+        {/* THREATS PAGE */}
 
         {activePage === "threats" && (
 
           <div className="full-panel">
 
             <div className="panel-header">
-              Threat Intelligence
+              Threat Detections
             </div>
 
             <div className="alerts-list">
@@ -534,23 +411,21 @@ function App() {
 
                   <div className="threat-info">
 
-                    <div>Host: {alert.hostname}</div>
+                    <div>
+                      Host: {alert.hostname}
+                    </div>
 
-                    <div>Process: {alert.process_name}</div>
+                    <div>
+                      Process: {alert.process_name}
+                    </div>
 
-                    <div>Parent: {alert.parent_process}</div>
+                    <div>
+                      Parent: {alert.parent_process}
+                    </div>
 
-                  </div>
-
-                  <div className="mitre-box">
-
-                    <span className="mitre-label">
-                      MITRE ATT&CK
-                    </span>
-
-                    <span className="mitre-id">
-                      {alert.mitre}
-                    </span>
+                    <div>
+                      MITRE: {alert.mitre}
+                    </div>
 
                   </div>
 
@@ -564,7 +439,7 @@ function App() {
 
         )}
 
-        {/* ================= HOSTS PAGE ================= */}
+        {/* HOST PAGE */}
 
         {activePage === "hosts" && (
 
@@ -578,14 +453,11 @@ function App() {
 
               {hosts.map((host, index) => (
 
-                <div
-                  key={index}
-                  className="host-card"
-                >
+                <div key={index} className="host-card">
 
                   <h2>{host}</h2>
 
-                  <p>Endpoint Agent Active</p>
+                  <p>Agent Active</p>
 
                   <div className="host-status">
                     Online
@@ -601,143 +473,7 @@ function App() {
 
         )}
 
-        {/* ================= INCIDENTS PAGE ================= */}
-
-        {activePage === "incidents" && (
-
-          <div className="full-panel">
-
-            <div className="panel-header">
-              Threat Correlation Incidents
-            </div>
-
-            <div className="alerts-list">
-
-              {incidents
-                .slice()
-                .reverse()
-                .map((incident, index) => (
-
-                <div
-                  key={index}
-                  className="threat-card high"
-                >
-
-                  <div className="threat-top">
-
-                    <div className="threat-name">
-                      Correlated Incident
-                    </div>
-
-                    <div className="severity-badge high">
-                      {incident.severity}
-                    </div>
-
-                  </div>
-
-                  <div className="threat-info">
-
-                    <div>
-                      <strong>Host:</strong> {incident.hostname}
-                    </div>
-
-                    <div>
-                      <strong>Attack Chain:</strong>
-                    </div>
-
-                    <div>
-                      {incident.attack_chain?.join(" → ")}
-                    </div>
-
-                  </div>
-
-                  <div className="mitre-box">
-
-                    <span className="mitre-label">
-                      MITRE ATT&CK
-                    </span>
-
-                    <span className="mitre-id">
-                      {incident.mitre}
-                    </span>
-
-                  </div>
-
-                </div>
-
-              ))}
-
-            </div>
-
-          </div>
-
-        )}
-
-        {/* ================= NETWORK PAGE ================= */}
-
-        {activePage === "network" && (
-
-          <div className="full-panel">
-
-            <div className="panel-header">
-              Live Network Connections
-            </div>
-
-            <div className="telemetry-scroll">
-
-              <table>
-
-                <thead>
-
-                  <tr>
-
-                    <th>Local IP</th>
-                    <th>Local Port</th>
-                    <th>Remote IP</th>
-                    <th>Remote Port</th>
-                    <th>Status</th>
-
-                  </tr>
-
-                </thead>
-
-                <tbody>
-
-                  {networkData.map((conn, index) => (
-
-                    <tr key={index}>
-
-                      <td>{conn.local_ip}</td>
-
-                      <td>{conn.local_port}</td>
-
-                      <td>{conn.remote_ip}</td>
-
-                      <td>{conn.remote_port}</td>
-
-                      <td>
-
-                        <span className="safe-badge">
-                          {conn.status}
-                        </span>
-
-                      </td>
-
-                    </tr>
-
-                  ))}
-
-                </tbody>
-
-              </table>
-
-            </div>
-
-          </div>
-
-        )}
-
-        {/* ================= TELEMETRY PAGE ================= */}
+        {/* TELEMETRY PAGE */}
 
         {activePage === "telemetry" && (
 
@@ -760,7 +496,6 @@ function App() {
                     <th>Parent</th>
                     <th>PID</th>
                     <th>Status</th>
-                    <th>MITRE</th>
 
                   </tr>
 
@@ -797,20 +532,6 @@ function App() {
                             SAFE
                           </span>
 
-                        )}
-
-                      </td>
-
-                      <td>
-
-                        {event.mitre ? (
-
-                          <span className="mitre-id">
-                            {event.mitre}
-                          </span>
-
-                        ) : (
-                          "-"
                         )}
 
                       </td>
